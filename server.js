@@ -9,5 +9,9 @@ ci.on('commit', function (commit) {
     });
 });
 
+ci.on('error', function (err) {
+    console.error(err);
+});
+
 var server = http.createServer(ci.handle);
 server.listen(5255);

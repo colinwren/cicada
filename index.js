@@ -30,10 +30,10 @@ function Cicada (opts, cb) {
     
     var repos = self.repos = pushover(opts.repodir);
     
-    repos.on('push', function (repo, commit) {
-        self.emit('push', repo, commit);
+    repos.on('push', function (repo, commit, branch) {
+        self.emit('push', repo, commit, branch);
         
-        self.checkout(repo, commit, function (err, c) {
+        self.checkout(repo, commit, branch, function (err, c) {
             if (err) self.emit('error', err)
             else self.emit('commit', c)
         });
@@ -43,7 +43,7 @@ function Cicada (opts, cb) {
 
 inherits(Cicada, EventEmitter);
 
-Cicada.prototype.checkout = function (repo, commit, cb) {
+Cicada.prototype.checkout = function (repo, commit, branch, cb) {
     var self = this;
     if (typeof cb !== 'function') cb = function () {};
     
@@ -59,7 +59,7 @@ Cicada.prototype.checkout = function (repo, commit, cb) {
     }
     
     function fetch () {
-        var cmd = [ 'git', 'fetch', path.join(self.repodir, repo) ];
+        var cmd = [ 'git', 'fetch', path.join(self.repodir, repo), branch ];
         runCommand(cmd, { cwd : dir }, function (err) {
             if (err) cb(err)
             else checkout()
@@ -67,13 +67,14 @@ Cicada.prototype.checkout = function (repo, commit, cb) {
     }
     
     function checkout () {
-        var cmd = [ 'git', 'checkout', '-b', 'master', commit ];
+        var cmd = [ 'git', 'checkout', '-b', branch, commit ];
         runCommand(cmd, { cwd : dir }, function (err) {
             if (err) return cb(err);
             var c = wrapCommit({
                 id : id,
                 dir : dir,
                 repo : repo,
+                branch : branch,
                 hash : commit
             });
             cb(null, c);
