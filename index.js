@@ -20,7 +20,9 @@ function Cicada (opts) {
     var self = this;
     
     if (!opts) opts = {};
-    if (typeof opts === 'string') opts = { repodir : opts };
+    if (typeof opts === 'string') {
+        opts = { repodir : opts + '/repo', workdir : opts + '/work' };
+    }
     
     self.repodir = opts.repodir || path.join(process.cwd(), 'repo');
     self.workdir = opts.workdir || path.join(process.cwd(), 'work');
