@@ -1,8 +1,10 @@
-var pushover = require('pushover');
-var inherits = require('inherits');
 var path = require('path');
 var EventEmitter = require('events').EventEmitter;
+var inherits = require('inherits');
+
+var pushover = require('pushover');
 var spawn = require('child_process').spawn;
+var parseShell = require('shell-quote').parse;
 
 module.exports = function (opts) {
     var c = new Cicada(opts);
@@ -36,7 +38,10 @@ inherits(Cicada, EventEmitter);
 
 Cicada.prototype.checkout = function (repo, commit, cb) {
     var self = this;
-    var dir = path.join(self.workdir, commit + '.' + Date.now());
+    if (typeof cb !== 'function') cb = function () {};
+    
+    var id = commit + '.' + Date.now();
+    var dir = path.join(self.workdir, id);
     
     function init () {
         runCommand([ 'git', 'init', '--bare', dir ], function (err) {
@@ -60,6 +65,22 @@ Cicada.prototype.checkout = function (repo, commit, cb) {
             else cb(null, dir)
         });
     }
+};
+
+Cicada.prototype.run = function (dir, command) {
+    var self = this;
+    
+    if (!Array.isArray(command)) {
+        command = parseShell(String(command));
+    }
+    
+    var ps = spawn(command[0], command.slice(1), { cwd : dir });
+    
+    // var scraper = jsonScrape();
+    // scraper.on('...', ...);
+    // ps.stdout.pipe(scraper);
+    
+    return ps;
 };
 
 Cicada.prototype.handle = function (req, res) {
