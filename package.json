@@ -1,0 +1,35 @@
+{
+    "name" : "cicada",
+    "version" : "0.0.0",
+    "description" : "a teeny git-based continuous integration server",
+    "main" : "index.js",
+    "directories" : {
+        "example" : "example",
+        "test" : "test"
+    },
+    "dependencies" : {
+        "inherits" : "~1.0.0",
+        "mkdirp" : "~0.3.3",
+        "pushover" : "~0.1.6",
+        "shell-quote" : "~0.0.1"
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/substack/cicada.git"
+    },
+    "homepage" : "https://github.com/substack/cicada",
+    "keywords" : [
+        "ci",
+        "continuous",
+        "integration",
+        "git",
+        "push",
+        "test"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "license" : "MIT"
+}
