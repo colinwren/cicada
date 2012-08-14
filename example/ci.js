@@ -1,16 +1,12 @@
 var http = require('http');
-var cicada = require('./');
+var cicada = require('../');
 
 var ci = cicada('/tmp/blarg');
 ci.on('commit', function (commit) {
     commit.run('test').on('exit', function (code) {
-        var msg = code === 0 ? 'PASSED' : 'FAILED';
-        console.log('/!\\ ' + msg + ' /!\\');
+        var status = code === 0 ? 'PASSED' : 'FAILED';
+        console.log(commit.hash + ' ' + status);
     });
-});
-
-ci.on('error', function (err) {
-    console.error(err);
 });
 
 var server = http.createServer(ci.handle);
