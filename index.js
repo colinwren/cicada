@@ -8,6 +8,7 @@ var pushover = require('pushover');
 var parseShell = require('shell-quote').parse;
 
 var wrapCommit = require('./lib/commit');
+var runCommand = require('./lib/command');
 
 module.exports = function (opts) {
     var c = new Cicada(opts);
@@ -88,33 +89,3 @@ Cicada.prototype.handle = function (req, res) {
     }
     else this.repos.handle(req, res);
 };
-
-function runCommand (cmd, opts, cb) {
-    if (typeof opts === 'function') {
-        cb = opts;
-        opts = {};
-    }
-    var ps = spawn(cmd[0], cmd.slice(1), opts);
-    var data = '';
-    ps.stdout.on('data', function (buf) { data += buf });
-    ps.stderr.on('data', function (buf) { data += buf });
-    
-    var pending = 3;
-    var code;
-    
-    function onend () {
-        if (--pending !== 0) return;
-        if (code !== 0) {
-            cb(
-                'non-zero exit code ' + code
-                + ' in command: ' + cmd.join(' ') + '\n'
-                + data
-            );
-        }
-        else cb()
-    }
-    ps.stdout.on('end', onend);
-    ps.stderr.on('end', onend);
-    ps.on('exit', function (c) { code = c; onend() });
-    ps.on('error', cb);
-}
