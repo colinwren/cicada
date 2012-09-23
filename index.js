@@ -10,18 +10,23 @@ var parseShell = require('shell-quote').parse;
 var wrapCommit = require('./lib/commit');
 var runCommand = require('./lib/command');
 
-module.exports = function (opts) {
-    var c = new Cicada(opts);
+module.exports = function (basedir, opts) {
+    var c = new Cicada(basedir, opts);
     c.handle = c.handle.bind(c);
     return c;
 };
 
-function Cicada (opts, cb) {
+function Cicada (basedir, opts) {
     var self = this;
     
     if (!opts) opts = {};
-    if (typeof opts === 'string') {
-        opts = { repodir : opts + '/repo', workdir : opts + '/work' };
+    if (typeof basedir === 'object') {
+        opts = basedir;
+        basedir = undefined;
+    }
+    if (typeof basedir === 'string') {
+        if (!opts.repodir) opts.repodir = basedir + '/repo';
+        if (!opts.workdir) opts.workdir = basedir + '/work';
     }
     
     self.repodir = opts.repodir || path.join(process.cwd(), 'repo');
@@ -29,26 +34,33 @@ function Cicada (opts, cb) {
     mkdirp.sync(self.repodir);
     mkdirp.sync(self.workdir);
     
-    var repos = self.repos = pushover(opts.repodir);
+    var repos = self.repos = pushover(opts.repodir, opts);
     
-    repos.on('push', function (repo, commit, branch) {
-        self.emit('push', repo, commit, branch);
-        
-        self.checkout(repo, commit, branch, function (err, c) {
-            if (err) self.emit('error', err)
-            else self.emit('commit', c)
+    repos.on('push', function (push) {
+        var anyListeners = self.listeners('push').length > 0;
+        push.on('accept', function () {
+            push.on('exit', function (code) {
+                if (code !== 0) {
+                    return self.emit('error', 'push failed with ' + code);
+                }
+                self.checkout(push, function (err, c) {
+                    if (err) self.emit('error', err)
+                    else self.emit('commit', c)
+                });
+            });
         });
+        self.emit('push', push);
+        if (!anyListeners) push.accept();
     });
-    if (typeof cb === 'function') self.on('push', cb);
 }
 
 inherits(Cicada, EventEmitter);
 
-Cicada.prototype.checkout = function (repo, commit, branch, cb) {
+Cicada.prototype.checkout = function (target, cb) {
     var self = this;
     if (typeof cb !== 'function') cb = function () {};
     
-    var id = commit + '.' + Date.now();
+    var id = target.commit + '.' + Date.now();
     var dir = path.join(self.workdir, id);
     init();
     
@@ -60,7 +72,11 @@ Cicada.prototype.checkout = function (repo, commit, branch, cb) {
     }
     
     function fetch () {
-        var cmd = [ 'git', 'fetch', path.join(self.repodir, repo), branch ];
+        var cmd = [
+            'git', 'fetch',
+            path.join(self.repodir, target.repo),
+            target.branch,
+        ];
         runCommand(cmd, { cwd : dir }, function (err) {
             if (err) cb(err)
             else checkout()
@@ -68,15 +84,15 @@ Cicada.prototype.checkout = function (repo, commit, branch, cb) {
     }
     
     function checkout () {
-        var cmd = [ 'git', 'checkout', '-b', branch, commit ];
+        var cmd = [ 'git', 'checkout', '-b', target.branch, target.commit ];
         runCommand(cmd, { cwd : dir }, function (err) {
             if (err) return cb(err);
             var c = wrapCommit({
                 id : id,
                 dir : dir,
-                repo : repo,
-                branch : branch,
-                hash : commit
+                repo : target.repo,
+                branch : target.branch,
+                hash : target.commit
             });
             cb(null, c);
         });

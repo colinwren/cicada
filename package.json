@@ -1,6 +1,6 @@
 {
     "name" : "cicada",
-    "version" : "0.0.0",
+    "version" : "0.1.0",
     "description" : "a teeny git-based continuous integration server",
     "main" : "index.js",
     "directories" : {
@@ -10,7 +10,7 @@
     "dependencies" : {
         "inherits" : "~1.0.0",
         "mkdirp" : "~0.3.3",
-        "pushover" : "~0.1.6",
+        "pushover" : "~1.0.1",
         "shell-quote" : "~0.0.1"
     },
     "repository" : {
