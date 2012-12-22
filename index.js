@@ -36,9 +36,16 @@ function Cicada (basedir, opts) {
     
     var repos = self.repos = pushover(opts.repodir, opts);
     
-    repos.on('info', self.emit.bind(self, 'info'));
-    repos.on('fetch', self.emit.bind(self, 'fetch'));
-    repos.on('head', self.emit.bind(self, 'head'));
+    function accept (name) {
+        return function (ev) {
+            var anyListeners = self.listeners(name).length > 0;
+            self.emit(name, ev);
+            if (!anyListeners) ev.accept();
+        }
+    }
+    repos.on('info', accept('info'));
+    repos.on('fetch', accept('fetch'));
+    repos.on('head', accept('head'));
     
     repos.on('push', function (push) {
         var anyListeners = self.listeners('push').length > 0;

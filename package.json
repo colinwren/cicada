@@ -13,6 +13,10 @@
         "pushover" : "~1.1.1",
         "shell-quote" : "~0.0.1"
     },
+    "devDependencies" : {
+        "tap" : "~0.3.3",
+        "comandante" : "~0.0.1"
+    },
     "repository" : {
         "type" : "git",
         "url" : "git://github.com/substack/cicada.git"
