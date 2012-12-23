@@ -36,8 +36,7 @@ function Cicada (basedir, opts) {
     self.workdir = workdir;
     if (typeof workdir === 'string') {
         self.workdir = function (target) {
-            var id = target.commit + '.' + Date.now();
-            return path.join(workdir, id);
+            return path.join(workdir, target.id);
         };
     }
     
@@ -78,6 +77,7 @@ Cicada.prototype.checkout = function (target, cb) {
     var self = this;
     if (typeof cb !== 'function') cb = function () {};
     
+    target.id = target.commit + '.' + Date.now();
     var dir = self.workdir(target);
     init();
     
@@ -105,6 +105,7 @@ Cicada.prototype.checkout = function (target, cb) {
         runCommand(cmd, { cwd : dir }, function (err) {
             if (err) return cb(new Error(err));
             var c = wrapCommit({
+                id : target.id,
                 dir : dir,
                 repo : target.repo,
                 branch : target.branch,
