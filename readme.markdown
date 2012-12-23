@@ -55,6 +55,14 @@ var cicada = require('cicada')
 Create a new ci server using `opts.repodir` for storing git blobs and
 `opts.workdir` for checking out code.
 
+If `opts.repodir` is a function, check out repositories to the directory
+specified by the return value of `opts.repodir(repo)` where `repo` is the repo
+name as a string.
+
+If `opts.workdir` is a function, check out repositories to the directory
+specified by the return value of `opts.workdir(commit)` where `commit` is a
+commit object described below.
+
 If `opts` is a string, use `opts + '/repo'` and `opts + '/work'`.
 
 If `cb` is provided, it acts as a listener for the `'commit'` event.

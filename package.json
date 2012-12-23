@@ -1,6 +1,6 @@
 {
     "name" : "cicada",
-    "version" : "0.1.2",
+    "version" : "1.0.0",
     "description" : "a teeny git-based continuous integration server",
     "main" : "index.js",
     "directories" : {
