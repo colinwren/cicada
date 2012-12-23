@@ -83,7 +83,7 @@ Cicada.prototype.checkout = function (target, cb) {
     
     function init () {
         runCommand([ 'git', 'init', dir ], function (err) {
-            if (err) cb(err)
+            if (err) cb(new Error(err))
             else fetch()
         });
     }
@@ -91,11 +91,11 @@ Cicada.prototype.checkout = function (target, cb) {
     function fetch () {
         var cmd = [
             'git', 'fetch',
-            path.join(self.repodir, target.repo),
+            self.repos.dirMap(target.repo),
             target.branch,
         ];
         runCommand(cmd, { cwd : dir }, function (err) {
-            if (err) cb(err)
+            if (err) cb(new Error(err))
             else checkout()
         });
     }
@@ -103,7 +103,7 @@ Cicada.prototype.checkout = function (target, cb) {
     function checkout () {
         var cmd = [ 'git', 'checkout', '-b', target.branch, target.commit ];
         runCommand(cmd, { cwd : dir }, function (err) {
-            if (err) return cb(err);
+            if (err) return cb(new Error(err));
             var c = wrapCommit({
                 dir : dir,
                 repo : target.repo,

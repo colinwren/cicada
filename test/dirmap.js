@@ -4,7 +4,9 @@ var test = require('tap').test;
 var spawn = require('child_process').spawn;
 var mkdirp = require('mkdirp');
 
-mkdirp.sync('/tmp/cicada-dirmapped-test/abcdefg');
+var basedir = '/tmp/cicada-dirmapped-test/'
+    + Math.random().toString(16).slice(2);
+mkdirp.sync(basedir + '/abcdefg');
 
 var ci;
 var server = http.createServer(function (req, res) {
@@ -16,16 +18,25 @@ test('setup', function (t) {
 });
 
 test('dir-mapped push', function (t) {
-    t.plan(10);
+    t.plan(8 + 2 + 6);
     
-    ci = cicada(function (dir) {
-        t.equal(dir, 'beep.git');
-        return '/tmp/cicada-dirmapped-test/abcdefg';
+    ci = cicada({
+        repodir : function (repo) {
+            // 8 of these should fire
+            t.equal(repo, 'beep.git');
+            return basedir + '/repo-abcdefg';
+        },
+        workdir : function (commit) {
+            // 1 of these should fire
+            t.equal(commit.repo, 'beep.git');
+            t.equal(commit.cwd, basedir + '/repo-abcdefg');
+            return basedir + '/abcdefg';
+        }
     });
     
     ci.on('commit', function (commit) {
         t.equal(commit.repo, 'beep.git');
-        t.equal(commit.dir, '/tmp/cicada-dirmapped-test/abcdefg');
+        t.equal(commit.dir, basedir + '/abcdefg');
         
         (function () {
             var ps = commit.spawn('ls');
