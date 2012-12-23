@@ -3,7 +3,8 @@ var cicada = require('../');
 var test = require('tap').test;
 var spawn = require('child_process').spawn;
 
-var ci = cicada('/tmp/' + Math.random());
+var repoDir = '/tmp/cicada-test/' + Math.random().toString(16).slice(2);
+var ci = cicada(repoDir);
 var server = http.createServer(ci.handle);
 
 test(function (t) {
@@ -11,10 +12,12 @@ test(function (t) {
 });
 
 test(function (t) {
-    t.plan(5);
+    t.plan(6);
     
     ci.on('commit', function (commit) {
         t.equal(commit.repo, 'beep.git');
+        var workDir = repoDir + '/work/';
+        t.equal(commit.dir.slice(0, workDir.length), workDir);
         
         (function () {
             var ps = commit.spawn('ls');
