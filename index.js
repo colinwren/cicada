@@ -31,11 +31,17 @@ function Cicada (basedir, opts) {
     }
     
     self.repodir = opts.repodir || path.join(process.cwd(), 'repo');
-    self.workdir = opts.workdir || path.join(process.cwd(), 'work');
-    mkdirp.sync(self.repodir);
-    mkdirp.sync(self.workdir);
     
-    var repos = self.repos = pushover(opts.repodir, opts);
+    var workdir = opts.workdir || path.join(process.cwd(), 'work');
+    self.workdir = workdir;
+    if (typeof workdir === 'string') {
+        self.workdir = function (target) {
+            var id = target.commit + '.' + Date.now();
+            return path.join(workdir, id);
+        };
+    }
+    
+    var repos = self.repos = pushover(self.repodir, opts);
     
     function accept (name) {
         return function (ev) {
@@ -72,8 +78,7 @@ Cicada.prototype.checkout = function (target, cb) {
     var self = this;
     if (typeof cb !== 'function') cb = function () {};
     
-    var id = target.commit + '.' + Date.now();
-    var dir = path.join(self.workdir, id);
+    var dir = self.workdir(target);
     init();
     
     function init () {
@@ -100,7 +105,6 @@ Cicada.prototype.checkout = function (target, cb) {
         runCommand(cmd, { cwd : dir }, function (err) {
             if (err) return cb(err);
             var c = wrapCommit({
-                id : id,
                 dir : dir,
                 repo : target.repo,
                 branch : target.branch,
