@@ -2,6 +2,8 @@
 
 a teeny git-based continuous integration server
 
+[![build status](https://secure.travis-ci.org/substack/cicada.png)](http://travis-ci.org/substack/cicada)
+
 # example
 
 Just hack up a cicada server:
