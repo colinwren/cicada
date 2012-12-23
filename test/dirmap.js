@@ -2,22 +2,30 @@ var http = require('http');
 var cicada = require('../');
 var test = require('tap').test;
 var spawn = require('child_process').spawn;
+var mkdirp = require('mkdirp');
 
-var repoDir = '/tmp/cicada-test/' + Math.random().toString(16).slice(2);
-var ci = cicada(repoDir);
-var server = http.createServer(ci.handle);
+mkdirp.sync('/tmp/cicada-dirmapped-test/abcdefg');
+
+var ci;
+var server = http.createServer(function (req, res) {
+    ci.handle(req, res);
+});
 
 test('setup', function (t) {
     server.listen(0, t.end.bind(t));
 });
 
-test('push', function (t) {
-    t.plan(6);
+test('dir-mapped push', function (t) {
+    t.plan(10);
+    
+    ci = cicada(function (dir) {
+        t.equal(dir, 'beep.git');
+        return '/tmp/cicada-dirmapped-test/abcdefg';
+    });
     
     ci.on('commit', function (commit) {
         t.equal(commit.repo, 'beep.git');
-        var workDir = repoDir + '/work/';
-        t.equal(commit.dir.slice(0, workDir.length), workDir);
+        t.equal(commit.dir, '/tmp/cicada-dirmapped-test/abcdefg');
         
         (function () {
             var ps = commit.spawn('ls');
