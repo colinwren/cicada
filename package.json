@@ -13,6 +13,9 @@
         "pushover" : "~1.2.0",
         "shell-quote" : "~0.0.1"
     },
+    "scripts" : {
+        "test" : "tap test/*.js"
+    },
     "devDependencies" : {
         "tap" : "~0.3.3",
         "comandante" : "~0.0.1"
