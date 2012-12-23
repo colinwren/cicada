@@ -20,6 +20,7 @@ function Cicada (basedir, opts) {
     var self = this;
     
     if (!opts) opts = {};
+    
     if (typeof basedir === 'object') {
         opts = basedir;
         basedir = undefined;

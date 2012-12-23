@@ -1,23 +1,48 @@
 var http = require('http');
 var cicada = require('../');
-var run = require('comandante');
+var test = require('tap').test;
+var spawn = require('child_process').spawn;
 
-var ci = cicada('/tmp/blarg');
-ci.on('commit', function (commit) {
-    console.dir(commit);
-    var ps = commit.spawn('ls');
-    ps.stderr.pipe(process.stdout, { end : false });
-    ps.stdout.pipe(process.stdout, { end : false });
-    /*
-    commit.run('test').on('exit', function (code) {
-        var status = code === 0 ? 'PASSED' : 'FAILED';
-        console.log(commit.hash + ' ' + status);
+var ci = cicada('/tmp/' + Math.random());
+var server = http.createServer(ci.handle);
+
+test(function (t) {
+    server.listen(0, t.end.bind(t));
+});
+
+test(function (t) {
+    t.plan(5);
+    
+    ci.on('commit', function (commit) {
+        t.equal(commit.repo, 'beep.git');
+        
+        (function () {
+            var ps = commit.spawn('ls');
+            var data = '';
+            ps.stdout.on('data', function (buf) { data += buf });
+            ps.on('close', function (code) {
+                t.equal(code, 0);
+                t.equal(data, 'robot.txt\n');
+            });
+        })();
+        
+        (function () {
+            var ps = commit.spawn('pwd');
+            var data = '';
+            ps.stdout.on('data', function (buf) { data += buf });
+            ps.on('close', function (code) {
+                t.equal(code, 0);
+                t.equal(data, commit.dir + '\n');
+            });
+        })();
     });
-    */
+    
+    spawn(__dirname + '/push.sh', [
+        'http://localhost:' + server.address().port + '/beep.git'
+    ]);
 });
 
-var server = http.createServer(function (req, res) {
-    console.log(req.method + ' ' + req.url);
-    ci.handle(req, res);
+test(function (t) {
+    server.close();
+    t.end();
 });
-server.listen(5255);
