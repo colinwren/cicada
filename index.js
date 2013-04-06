@@ -52,6 +52,7 @@ function Cicada (basedir, opts) {
     repos.on('info', accept('info'));
     repos.on('fetch', accept('fetch'));
     repos.on('head', accept('head'));
+    repos.on('tag', accept('tag'));
     
     repos.on('push', function (push) {
         var anyListeners = self.listeners('push').length > 0;
